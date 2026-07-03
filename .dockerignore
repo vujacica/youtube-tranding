@@ -1,0 +1,9 @@
+# ignoriši dataset i velike fajlove u image
+data/
+*.csv
+*.json
+
+# standardno
+__pycache__/
+.venv/
+*.pyc

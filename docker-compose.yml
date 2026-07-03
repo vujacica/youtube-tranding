@@ -1,0 +1,53 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    container_name: yt-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    depends_on: [mongo]
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    ports:
+      - "8081:8081"
+
+  api_initial:
+    build: .
+    container_name: yt-api-initial
+    depends_on: [mongo]
+    working_dir: /app
+    command: ["python", "initial-schema/scripts/api.py"]
+    ports:
+      - "5001:5001"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      DB_NAME: yt_trending
+      DATA_DIR: /app/data
+    volumes:
+      - ./:/app
+
+  api_optimized:
+    build: .
+    container_name: yt-api-optimized
+    depends_on: [mongo]
+    working_dir: /app
+    command: ["python", "optimised-schema/scripts/api.py"]
+    ports:
+      - "5002:5002"  # drugi API → drugi port na hostu!
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      DB_NAME: yt_trending
+      DATA_DIR: /app/data   
+    volumes:
+      - ./:/app
+    
+volumes:
+  mongo_data:
